@@ -2,9 +2,9 @@ name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [develop]
 
 env:
   GCP_PROJECT_ID: rag-pipeline-487306
@@ -13,7 +13,7 @@ env:
   IMAGE: us-central1-docker.pkg.dev/rag-pipeline-487306/rag-classic/rag-classic
 
 jobs:
-  # ── Job 1: Lint & basic checks ─────────────────────────────────────────────
+  # ── Job 1: Check if code is valid ──────────────────────────────────────────
   test:
     name: Lint & Validate
     runs-on: ubuntu-latest
@@ -31,12 +31,7 @@ jobs:
           . .venv/bin/activate
           uv pip install .
 
-      - name: Check imports
-        run: |
-          . .venv/bin/activate
-          python -c "from app.config import PINECONE_INDEX_NAME; print('✅ Imports OK')"
-
-      - name: Syntax check all modules
+      - name: Verify all modules compile
         run: |
           . .venv/bin/activate
           python -m py_compile app/config.py
@@ -47,22 +42,19 @@ jobs:
           python -m py_compile app/generation.py
           python -m py_compile app/api.py
           python -m py_compile main.py
-          echo "✅ All modules compile successfully"
+          echo "✅ All modules OK"
 
-  # ── Job 2: Build & Deploy to Cloud Run ─────────────────────────────────────
+  # ── Job 2: Build Docker image & deploy to Cloud Run ────────────────────────
   deploy:
     name: Build & Deploy
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    permissions:
-      contents: read
-      id-token: write
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
 
     steps:
       - uses: actions/checkout@v4
 
+      # Step 1: Login to Google Cloud
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
@@ -71,6 +63,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      # Step 2: Build & push Docker image to Artifact Registry
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
@@ -82,6 +75,7 @@ jobs:
           docker push $IMAGE:$GITHUB_SHA
           docker push $IMAGE:latest
 
+      # Step 3: Deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy $SERVICE_NAME \
