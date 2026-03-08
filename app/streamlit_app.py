@@ -2,10 +2,9 @@ import streamlit as st
 import requests
 
 # FastAPI backend URL
-#API_URL = "http://127.0.0.1:8086/chat"
-API_URL = "http://127.0.0.1:8086/chatendpoint"
-#API_URL = "https://simple-fastapi-streamlit-chatbot.onrender.com/chat"
-#deployed frontend https://mysimplefastapiappchatbot.streamlit.app/
+API_URL = "https://rag-chatbot-hdfc-insurance-groq.onrender.com"
+#API_URL = "http://127.0.0.1:8086/chatendpoint"
+
 
 
 st.set_page_config(page_title="Groq Chatbot", page_icon="🤖")
