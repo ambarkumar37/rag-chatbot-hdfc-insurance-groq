@@ -6,6 +6,20 @@ It ingests PDF documents, chunks them with page-number tracking, stores them in 
 
 ---
 
+---
+This AI assistant helps you understand **HDFC ERGO insurance policies**.
+
+You can ask questions about:
+- Policy coverage
+- Claims process
+- Exclusions
+- Benefits and limits
+- Policy terms
+
+The assistant retrieves answers directly from the uploaded **policy documents** and shows the **source references** used to generate the response.
+"""
+---
+
 ## Architecture
 
 ```

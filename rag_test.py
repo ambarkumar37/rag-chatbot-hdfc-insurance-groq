@@ -21,6 +21,8 @@ from pypdf import PdfReader
 from pinecone import Pinecone
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+from Supersonic_LLM.config import *
+from openai import AzureOpenAI
 
 load_dotenv()
 
@@ -34,7 +36,8 @@ INDEX_NAME = "rag-test"
 NAMESPACE = "documents"
 EMBED_MODEL = "multilingual-e5-large"
 RERANK_MODEL = "bge-reranker-v2-m3"
-LLM_MODEL = "gpt-4o-mini"
+#LLM_MODEL = "gpt-4o-mini"
+LLM_MODEL="gpt-oss-120b"
 
 CHUNK_SIZE = 512
 CHUNK_OVERLAP = 64
@@ -48,6 +51,33 @@ llm = ChatOpenAI(
     max_tokens=1024,
     temperature=0.2,
 )
+
+def get_openai_client():
+    """
+    Returns an instance of the AzureOpenAI client.
+    """
+    return AzureOpenAI(
+    api_version=api_version,
+    azure_endpoint=AI_FOUNDRY_AI_SERVICES_URL,
+    api_key=AI_FOUNDRY_KEY,
+    )
+
+
+def get_response(messages):
+    """
+    Returns a response from the OpenAI client.
+    """
+    client = get_openai_client()
+    response = client.chat.completions.create(
+        stream=False,
+        messages=messages,
+    max_tokens=4096,
+    temperature=1.0,
+    top_p=1.0,
+    model=gpt4deployment
+        )
+    return response
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # STEP 1: Extract text from PDF (page by page)
@@ -245,18 +275,42 @@ for i, c in enumerate(reranked, 1):
 
 context = "\n\n".join(context_parts)
 
-system_msg = (
-    "You are a helpful assistant. Answer based ONLY on the provided context. "
-    "Cite sources inline as [1], [2], etc. "
-    "End with a References section: [n] filename, p.X"
-)
+# system_msg = (
+#     "You are a helpful assistant. Answer based ONLY on the provided context. "
+#     "Cite sources inline as [1], [2], etc. "
+#     "End with a References section: [n] filename, p.X"
+# )
 
-ai_msg = llm.invoke([
-    ("system", system_msg),
-    ("human", f"Context:\n{context}\n\n---\nQuestion: {QUESTION}"),
-])
+system_msg ="""
+    You are a helpful assistant. Answer based ONLY on the provided context.
+    Cite sources inline as [1], [2], etc.
+    End with a References section: [n] filename, p.X
+"""
 
-answer = ai_msg.content
+
+# ai_msg = llm.invoke([
+#     ("system", system_msg),
+#     ("human", f"Context:\n{context}\n\n---\nQuestion: {QUESTION}"),
+# ])
+
+
+# answer = ai_msg.content
+
+messages = [
+        {
+            "role": "system",
+            "content": system_msg,
+        },
+        {
+            "role": "user",
+            "content": f"Context:\n{context}\n\n---\nQuestion: {QUESTION}",
+        }
+    
+    ]
+
+ai_msg = get_response(messages)
+answer=ai_msg.choices[0].message.content
+print(answer)
 
 print(f"\n{'='*60}")
 print(f"  Question: {QUESTION}")
@@ -281,18 +335,33 @@ for i, c in enumerate(reranked, 1):
 
 ctx = "\n\n".join(ctx_parts)
 
-system_prompt = (
-    "You are a helpful assistant. Answer based ONLY on the provided context. "
-    "Cite sources inline as [1], [2], etc. "
-    "End with a References section: [n] filename, p.X"
-)
+system_prompt ="""
+    You are a helpful assistant. Answer based ONLY on the provided context.
+    Cite sources inline as [1], [2], etc.
+    End with a References section: [n] filename, p.X
+    """
 
-final_msg = llm.invoke([
-    ("system", system_prompt),
-    ("human", f"Context:\n{ctx}\n\n---\nQuestion: {QUESTION}"),
-])
+# final_msg = llm.invoke([
+#     ("system", system_prompt),
+#     ("human", f"Context:\n{ctx}\n\n---\nQuestion: {QUESTION}"),
+# ])
 
-final_answer = final_msg.content
+# final_answer = final_msg.content
+messages = [
+        {
+            "role": "system",
+            "content": system_prompt,
+        },
+        {
+            "role": "user",
+            "content": f"Context:\n{ctx}\n\n---\nQuestion: {QUESTION}",
+        }
+    
+    ]
+final_msg = get_response(messages)
+final_answer=ai_msg.choices[0].message.content
+print(final_answer)
+
 
 print(f"\n{'='*60}")
 print(f"  Final Generated Answer (from reranked chunks)")

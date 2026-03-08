@@ -13,6 +13,7 @@ Usage:
     python main.py ask "What was Apple's revenue in Q4 2024?"
 """
 
+
 import sys
 import os
 import uvicorn

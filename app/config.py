@@ -4,6 +4,7 @@ Configuration module — loads environment variables and defines app-wide settin
 
 import os
 from dotenv import load_dotenv
+import json 
 
 load_dotenv()
 
@@ -32,6 +33,33 @@ OPENAI_MODEL: str = "gpt-4o-mini"
 MAX_TOKENS: int = 1024
 TEMPERATURE: float = 0.2
 
+
+#azure ai searhc vairables 
+
+
+file_path=r"D:\Machine_learning\Deeplearning\aiml_tutorials\Supersonic_LLM\Supersonic_LLM\config_json.txt"
+config_json = json.load(open(file_path))
+# poppler_path=r"C:\Users\ny4016439\Downloads\Release-25.07.0-0\poppler-25.07.0\Library\bin"
+
+
+AZURE_SEARCH_ENDPOINT=config_json["AZURE_SEARCH_ENDPOINT"]
+AZURE_SEARCH_API_KEY=config_json["AZURE_SEARCH_API_KEY"]
+AZURE_SEARCH_INDEX=config_json["AZURE_SEARCH_INDEX"]
+AZURE_OPENAI_ENDPOINT=config_json["AZURE_OPENAI_ENDPOINT"]
+AZURE_OPENAI_API_KEY=config_json["AZURE_OPENAI_API_KEY"]
+AZURE_OPENAI_DEPLOYMENT_GPT_ID=config_json["AZURE_OPENAI_DEPLOYMENT_GPT_ID"]
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID=config_json["AZURE_OPENAI_EMBEDDING_DEPLOYMENT_ID"]
+api_version = "2024-12-01-preview"
+AZURE_STORAGE_CONNECTION=config_json["AZURE_STORAGE_CONNECTION"]
+AccountKey="AccountKey"
+AI_FOUNDRY_AI_SERVICES_URL=config_json["AI_FOUNDRY_AI_SERVICES_URL"]
+AI_FOUNDRY_KEY=config_json["AI_FOUNDRY_KEY"]
+FOUNDRY_EMBEDDING_DEPLOYMENT_NAME=config_json["FOUNDRY_EMBEDDING_DEPLOYMENT_NAME"]
+FOUNDRY_EMBEDDING_MODEL_NAME=config_json["FOUNDRY_EMBEDDING_MODEL_NAME"]
+gpt4modelname= config_json["gpt4modelname"]
+gpt4deployment=config_json["gpt4deployment"]
+ocr_endpoint=config_json["ocr_endpoint"]
+ocr_endpoint_key=config_json["ocr_endpoint_key"]
 
 if __name__ == "__main__":
     print("=== Config Test ===")

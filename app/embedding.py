@@ -7,7 +7,7 @@ import time
 from typing import List, Dict
 from pinecone import Pinecone
 
-from app.config import (
+from config import (
     PINECONE_API_KEY,
     PINECONE_INDEX_NAME,
     PINECONE_NAMESPACE,

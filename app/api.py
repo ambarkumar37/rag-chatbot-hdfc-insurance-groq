@@ -6,11 +6,11 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 
-from app.ingestion import ingest_document
-from app.embedding import upsert_chunks
-from app.retrieval import search
-from app.reranker import rerank
-from app.generation import generate_answer
+from ingestion import ingest_document
+from embedding import upsert_chunks
+from retrieval import search
+from reranker import rerank
+from generation import generate_answer
 
 # ── FastAPI app ──────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -103,7 +103,64 @@ def ingest_endpoint(req: IngestRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/chat", response_model=ChatResponse)
+
+
+@app.post("/chat", status_code=200)
+def chat_func(req: ChatRequest):
+    """
+    Full RAG pipeline: retrieve → (rerank) → generate answer.
+    """
+    try:
+        # Step 1: Always fetch raw retrieval results
+        retrieved_chunks = search(req.question)
+
+        # Step 2: Rerank if enabled
+        if req.use_reranker:
+            reranked_chunks = rerank(req.question)
+            chunks = reranked_chunks
+        else:
+            chunks = retrieved_chunks
+
+        if not chunks:
+            return ChatResponse(
+                answer="I couldn't find any relevant information in the documents.",
+                sources=[],
+            )
+
+        # Step 3: Generate answer with citations
+        answer = generate_answer(req.question, chunks)
+
+        def _to_source(c, idx):
+            return SourceChunk(
+                id=c["id"],
+                score=c["score"],
+                source=c["source"],
+                pages=c.get("pages", ""),
+                chunk_text=c["chunk_text"][:200] + "...",
+                citation=f"[{idx}]",
+            )
+
+        sources = [_to_source(c, i) for i, c in enumerate(chunks, 1)]
+
+        # Debug: include raw retrieval + reranked lists for comparison
+        debug_retrieved = None
+        debug_reranked = None
+        if req.debug:
+            debug_retrieved = [_to_source(c, i) for i, c in enumerate(retrieved_chunks, 1)]
+            if req.use_reranker:
+                debug_reranked = [_to_source(c, i) for i, c in enumerate(reranked_chunks, 1)]
+
+        return {
+            "status":"Success",
+            "answer":answer
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.post("/chatendpoint", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest):
     """
     Full RAG pipeline: retrieve → (rerank) → generate answer.
