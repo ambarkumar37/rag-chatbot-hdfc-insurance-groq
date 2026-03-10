@@ -21,7 +21,6 @@ from pypdf import PdfReader
 from pinecone import Pinecone
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from Supersonic_LLM.config import *
 from openai import AzureOpenAI
 
 load_dotenv()
