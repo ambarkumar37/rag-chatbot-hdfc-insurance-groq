@@ -37,9 +37,9 @@ TEMPERATURE: float = 0.2
 #azure ai searhc vairables 
 
 
-file_path=r"D:\Machine_learning\Deeplearning\aiml_tutorials\Supersonic_LLM\Supersonic_LLM\config_json.txt"
+file_path=r"D:\Machine_learning\Deeplearning\aiml_tutorials\config_json.txt"
 config_json = json.load(open(file_path))
-# poppler_path=r"C:\Users\ny4016439\Downloads\Release-25.07.0-0\poppler-25.07.0\Library\bin"
+
 
 
 AZURE_SEARCH_ENDPOINT=config_json["AZURE_SEARCH_ENDPOINT"]
