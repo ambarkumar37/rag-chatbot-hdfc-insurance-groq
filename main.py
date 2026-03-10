@@ -17,7 +17,7 @@ Usage:
 import sys
 import os
 import uvicorn
-
+import pandas as pd
 
 def serve():
     """Start the FastAPI server."""
