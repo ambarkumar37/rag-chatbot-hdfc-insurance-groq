@@ -10,7 +10,7 @@ from ingestion import ingest_document
 from embedding import upsert_chunks
 from retrieval import search
 from reranker import rerank
-from generation import generate_answer
+from generation import *
 
 # ── FastAPI app ──────────────────────────────────────────────────────────────
 app = FastAPI(
